@@ -2,8 +2,9 @@
 
 var config = require('config'),
 	express = require('express'),
+	Resource = require('express-resource'),
 	_ = require('underscore'),
-	routes = require('./routes'),
+	resources = require('./resources'),
 	port = process.env.PORT || config.port,
 	apiKeys = config.apiKeys || [],
 	app = express(),
@@ -19,9 +20,9 @@ function error(status, msg) {
   return err;
 }
 
-function setupRoutes(app, routes){
-	_.each(routes, function(route){
-		route(app);
+function setupResources(app, resources){
+	_.each(resources, function(resource){
+		app.resource(resource.id, resource);
 	});
 }
 
@@ -41,7 +42,7 @@ app.configure(function(){
 		next();
 	});
 	app.use(app.router);
-	setupRoutes(app, routes);
+	setupResources(app, resources);
 	app.use(function(err, req, res, next){
 		res.send(err.status || 500, { error: err.message });
 	});

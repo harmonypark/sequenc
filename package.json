@@ -21,6 +21,7 @@
     "config": "~0.4.29",
     "phantomjs": "~1.9.2-0",
     "phantom-proxy": "~0.1.792",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "express-resource": "~1.0.0"
   }
 }
