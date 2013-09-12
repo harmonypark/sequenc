@@ -18,6 +18,9 @@
   "dependencies": {
     "express": "~3.4.0",
     "request": "~2.27.0",
-    "config": "~0.4.29"
+    "config": "~0.4.29",
+    "phantomjs": "~1.9.2-0",
+    "phantom-proxy": "~0.1.792",
+    "underscore": "~1.5.2"
   }
 }
