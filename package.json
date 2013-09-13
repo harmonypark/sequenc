@@ -22,6 +22,16 @@
     "phantomjs": "~1.9.2-0",
     "phantom-proxy": "~0.1.792",
     "underscore": "~1.5.2",
-    "express-resource": "~1.0.0"
+    "express-resource": "~1.0.0",
+    "validator": "~1.5.1",
+    "express-validator": "~0.8.0",
+    "node-uuid": "~1.4.1",
+    "kue": "~0.6.2",
+    "cluster": "~0.7.7"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.5.3",
+    "matchdep": "~0.1.2"
   }
 }

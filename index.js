@@ -2,6 +2,7 @@
 
 var config = require('config'),
 	express = require('express'),
+	expressValidator = require('express-validator'),
 	Resource = require('express-resource'),
 	_ = require('underscore'),
 	resources = require('./resources'),
@@ -22,25 +23,18 @@ function error(status, msg) {
 
 function setupResources(app, resources){
 	_.each(resources, function(resource){
-		app.resource(resource.id, resource);
+		app.resource(resource.id, resource, resource.param);
 	});
 }
 
 app.configure(function(){
-	app.use(express.logger());
+	app.use(express.logger('dev'));
 	app.use(express.compress());
 	app.use(express.bodyParser());
-	app.use('/api', function(req, res, next){
-		var key = req.query['api_key'];
-		if (!key) {
-			return next(error(400, 'api key required'));
-		}
-		if (!~apiKeys.indexOf(key)) {
-			return next(error(401, 'invalid api key'));
-		}
-		req.key = key;
-		next();
-	});
+	app.use(expressValidator());
+	app.use(express.basicAuth(function(user, pass) {
+		return user === 'testUser' && pass === 'testPass';
+	}));
 	app.use(app.router);
 	setupResources(app, resources);
 	app.use(function(err, req, res, next){
