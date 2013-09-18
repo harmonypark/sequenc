@@ -1,9 +1,8 @@
 'use strict';
 
 module.exports = function (grunt) {
-  // load all grunt tasks
-	require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
+	require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
 	grunt.initConfig({
 		watch: {
@@ -12,15 +11,34 @@ module.exports = function (grunt) {
 		          '{,*/}*.js',
 		        ]
 			}
+		},
+		nodemon: {
+		  dev: {
+		  	options: {
+		  		nodeArgs: ['--debug'],
+		  		watchedExtensions: ['js'],
+		  		ignoredFiles: ['README.md', 'node_modules/**', 'Gruntfile.js', 'tmp']
+		  	}
+		  }
 		}
    	});
 
-   	grunt.registerTask('server', function (target) {
+	grunt.registerTask('runRedis', function () {
+		grunt.util.spawn({
+		  cmd: 'redis-server',
+		  opts: {
+		    stdio: 'inherit'
+		  }
+		}, function () {
+		  grunt.fail.fatal(new Error("Redis quit"));
+		});
+	});
 
+	grunt.registerTask('server', function (target) {
 	    grunt.task.run([
-	      'watch'
+	      'runRedis',
+	      'nodemon:dev'
 	    ]);
-
   	});
 
 };

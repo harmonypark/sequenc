@@ -26,12 +26,14 @@
     "validator": "~1.5.1",
     "express-validator": "~0.8.0",
     "node-uuid": "~1.4.1",
-    "kue": "~0.6.2",
-    "cluster": "~0.7.7"
+    "redis": "~0.8.4",
+    "winston": "~0.7.2",
+    "kue": "git://github.com/harmonypark/kue"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-watch": "~0.5.3",
-    "matchdep": "~0.1.2"
+    "matchdep": "~0.1.2",
+    "grunt-nodemon": "~0.1.1"
   }
 }
