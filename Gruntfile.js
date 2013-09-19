@@ -15,9 +15,9 @@ module.exports = function (grunt) {
 		nodemon: {
 		  dev: {
 		  	options: {
-		  		nodeArgs: ['--debug'],
+		  		nodeArgs: [],
 		  		watchedExtensions: ['js'],
-		  		ignoredFiles: ['README.md', 'node_modules/**', 'Gruntfile.js', 'tmp']
+		  		ignoredFiles: ['README.md', 'Gruntfile.js', 'tmp']
 		  	}
 		  }
 		}

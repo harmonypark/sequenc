@@ -28,7 +28,8 @@
     "node-uuid": "~1.4.1",
     "redis": "~0.8.4",
     "winston": "~0.7.2",
-    "kue": "git://github.com/harmonypark/kue"
+    "kue": "git://github.com/harmonypark/kue",
+    "lodash": "~2.0.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
