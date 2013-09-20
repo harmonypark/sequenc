@@ -1,6 +1,7 @@
 'use strict';
 
-var _ = require('underscore'),
+var _ = require('lodash'),
+	path = require('path'),
 	spawn = require('child_process').spawn,
 	uuid = require('node-uuid'),
 	fs = require('fs'),
@@ -40,30 +41,34 @@ function runFfmpeg( options ){
 exports.run = function(job, done){
 
 	var data = job.data || {},
-		jobId = uuid.v1();
+		jobId = uuid.v1(),
+		inFormat = 'png',
+		outFormat = 'gif';
 
 	phantom = runPhantom(_.extend({jobId: jobId}, data));
 
 	phantom.on('close', function( status ){
 
 		if(status !== 0){
+
 			done(exports.type + ' process: ' + status);
+
 		} else {
+
 			ffmpeg = runFfmpeg({
-				jobId: jobId
+				jobId: jobId,
+				inFormat: inFormat,
+				outFormat: outFormat
 			});
 
 			ffmpeg.on('close', function (status) {
 				if(status !== 0){
 					done(exports.type + ' process: ' + data);
 				} else {
-					done(null);
+					done(null, {file: path.resolve('./tmp/' + jobId + '/' + 'out.' + outFormat)});
 				}
 			});
 
-			ffmpeg.stderr.on('data', function (data) {
-				console.log(data.toString())
-			});
 		}
 
 

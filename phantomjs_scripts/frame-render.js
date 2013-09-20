@@ -23,23 +23,18 @@ page.viewportSize = { width: width, height: height};
 
 page.open(url, function(status) {
 
-	if(status === 'fail'){
+	if(status !== 'success'){
 		system.stderr.write('Failed to open ' + url);
-		phantom.exit();
+		phantom.exit(1);
 	}
 
 	setTimeout(function(){
 		setInterval(function(){
-			// system.stdout.write('Rendering\n');
-			// page.sendEvent('mousemove', Math.floor(Math.random()*width*0.1+width*0.5), Math.floor(Math.random()*height*0.1+height*0.5));
-	        // system.stdout.write(page.render());
 	        page.render('./tmp/' + dirPrefix + '/' + '_' + currFrame + '.png');
 	        if( currFrame == frames ){
-	            phantom.exit();
+	            phantom.exit(0);
 	        }
-
 	        currFrame++;
-
 	    }, 1000/frameRate);
 	}, 1000);
 });
