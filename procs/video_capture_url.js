@@ -4,7 +4,7 @@ var _ = require('lodash'),
 	path = require('path'),
 	spawn = require('child_process').spawn,
 	uuid = require('node-uuid'),
-	fs = require('fs'),
+	proFiles = require('../lib/promised-files'),
 	phantom, ffmpeg;
 
 
@@ -16,11 +16,13 @@ function runPhantom( options ){
 		duration = options.duration,
 		jobId = options.jobId,
 		width = options.width,
-		height = options.height;
+		height = options.height,
+		outFormat = options.outFormat,
+		frameRate = options.frameRate;
 
 	return spawn(
 	    'phantomjs',
-	    ['./phantomjs_scripts/frame-render.js', uri, duration, jobId, width, height]
+	    ['./phantomjs_scripts/frame-render.js', uri, duration, jobId, width, height, outFormat, frameRate]
 	);
 }
 
@@ -28,8 +30,8 @@ function runFfmpeg( options ){
 
 	options = options || {};
 
-	var inFormat = options.inFormat || 'png',
-		outFormat = options.outFormat || 'mp4',
+	var inFormat = options.inFormat || 'PNG',
+		outFormat = options.outFormat || 'MP4',
 		jobId = options.jobId;
 
 	return spawn(
@@ -38,49 +40,83 @@ function runFfmpeg( options ){
 	);
 }
 
+
 exports.run = function(job, done){
 
-	var data = job.data || {},
-		jobId = uuid.v1(),
-		inFormat = 'png',
-		outFormat = 'gif';
+	// TODO: get rid of lame format string mapping
 
-	phantom = runPhantom(_.extend({jobId: jobId}, data));
+	var data = job.data || {},
+		format = data.format,
+		duration = data.duration,
+		inFormat = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
+		outFormat = ((!duration) ? (format || 'GIF') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
+		jobId = uuid.v1();
+
+	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, data));
 
 	phantom.on('close', function( status ){
 
 		if(status !== 0){
-
-			done(exports.type + ' process: ' + status);
+			return done(exports.type + ' process: ' + status);
 
 		} else {
 
-			ffmpeg = runFfmpeg({
-				jobId: jobId,
-				inFormat: inFormat,
-				outFormat: outFormat
-			});
+			if(!duration) {
 
-			ffmpeg.on('close', function (status) {
-				if(status !== 0){
-					done(exports.type + ' process: ' + data);
-				} else {
-					done(null, {file: path.resolve('./tmp/' + jobId + '/' + 'out.' + outFormat)});
-				}
-			});
+				onprocend( status );
+
+			} else {
+
+				ffmpeg = runFfmpeg({
+					jobId: jobId,
+					inFormat: inFormat,
+					outFormat: outFormat
+				});
+
+				ffmpeg.on('close', onprocend);
+			}
+
 
 		}
 
-
 	});
+
+	function onprocend( status ){
+		if(status !== 0){
+
+			return onfail(data);
+
+		} else {
+
+			var fileName = (duration) ? 'out.' + outFormat : '_0.' + outFormat,
+				tempLoc = './tmp/' + jobId,
+				newLoc = './store/' + jobId;
+
+			proFiles.mkdir(newLoc)
+				.then(_.partial(proFiles.copy, tempLoc.concat('/', fileName), newLoc.concat('/', fileName)))
+				.then(_.partial(onsuccess, {file: path.resolve( newLoc.concat('/', fileName) )}))
+				.fail( onfail )
+				.done( _.partial( proFiles.rmdir, tempLoc, {recursive: true, force: true} ) );
+
+		}
+	}
+
+	function onfail(err){
+		console.log(err)
+		return done(exports.type + ' process: ' + err);
+	}
+
+	function onsuccess(data){
+		return done(null, data);
+	}
 
 };
 
-exports.type = "capture_video";
+exports.type = "capture";
 exports.concur = 10;
 exports.schema = {
 	'title': 'Process',
-	'description': 'URL to Video conversion',
+	'description': 'URL to Media conversion',
 	'type': 'object',
 	'properties': {
 		'uri': {

@@ -29,7 +29,9 @@
     "redis": "~0.8.4",
     "winston": "~0.7.2",
     "kue": "git://github.com/harmonypark/kue",
-    "lodash": "~2.0.0"
+    "lodash": "~2.0.0",
+    "q": "~0.9.7",
+    "fs2": "~0.1.5"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
