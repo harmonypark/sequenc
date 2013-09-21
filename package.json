@@ -24,7 +24,8 @@
     "kue": "git://github.com/harmonypark/kue",
     "lodash": "~2.0.0",
     "q": "~0.9.7",
-    "fs2": "~0.1.5"
+    "fs2": "~0.1.5",
+    "redis": "~0.8.4"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

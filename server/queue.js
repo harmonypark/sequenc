@@ -2,8 +2,17 @@ var kue = require('kue'),
 	util = require('util'),
 	_ = require('lodash'),
 	fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    redis = require('redis'),
+    url = require('url'),
+    redisUrl = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379'),
+    redisAuth = (redisUrl.auth || '').split(':'),;
 
+kue.redis.createClient = function() {
+    var client = redis.createClient(redisUrl.port, redisUrl.hostname);
+    client.auth(redisAuth[1]);
+    return client;
+};
 
 var loadProcs = function loadProcs( dirname ){
 

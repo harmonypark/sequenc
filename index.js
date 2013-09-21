@@ -1,6 +1,7 @@
 'use strict';
 
 var express = require('express'),
+	url = require('url'),
 	config = require('config'),
 	queueServer = require('./server/queue'),
 	app = express();
