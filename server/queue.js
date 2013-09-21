@@ -6,7 +6,7 @@ var kue = require('kue'),
     redis = require('redis'),
     url = require('url'),
     redisUrl = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379'),
-    redisAuth = (redisUrl.auth || '').split(':'),;
+    redisAuth = (redisUrl.auth || '').split(':');
 
 kue.redis.createClient = function() {
     var client = redis.createClient(redisUrl.port, redisUrl.hostname);
