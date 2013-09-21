@@ -7,11 +7,10 @@ var express = require('express'),
 
 queueServer.loadProcs('./procs');
 app.use(express.logger('dev'));
-// app.use(express.basicAuth('foo', 'bar'));
 app.use(queueServer.app);
 app.use(function(err, req, res, next){
 	res.send({ errors: [err] }, err.status); //TODO: implement proper error handler
 });
-app.listen(config.port);
 
+app.listen(config.port);
 console.log('App listening on port:' + config.port);

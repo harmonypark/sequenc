@@ -1,7 +1,7 @@
 {
   "name": "framecap",
-  "version": "0.0.0",
-  "description": "render urls to videos using PhantomJs",
+  "version": "0.0.1",
+  "description": "Capture urls using procs",
   "main": "index.js",
   "scripts": {
     "test": "grunt test"
@@ -20,14 +20,7 @@
     "request": "~2.27.0",
     "config": "~0.4.29",
     "phantomjs": "~1.9.2-0",
-    "phantom-proxy": "~0.1.792",
-    "underscore": "~1.5.2",
-    "express-resource": "~1.0.0",
-    "validator": "~1.5.1",
-    "express-validator": "~0.8.0",
     "node-uuid": "~1.4.1",
-    "redis": "~0.8.4",
-    "winston": "~0.7.2",
     "kue": "git://github.com/harmonypark/kue",
     "lodash": "~2.0.0",
     "q": "~0.9.7",

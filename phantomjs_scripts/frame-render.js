@@ -15,9 +15,12 @@ var page = require('webpage').create(),
 	frames = (duration) ? duration * frameRate : 1,
 	currFrame = 0;
 
+if(!url || !dirPrefix){
+	phantom.exit(1);
+}
+
 page.clipRect = { top: 0, left: 0, width: width, height: height};
 page.viewportSize = { width: width, height: height};
-
 page.open(url, function(status) {
 
 	if(status !== 'success'){

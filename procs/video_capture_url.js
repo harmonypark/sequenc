@@ -102,7 +102,6 @@ exports.run = function(job, done){
 	}
 
 	function onfail(err){
-		console.log(err)
 		return done(exports.type + ' process: ' + err);
 	}
 
@@ -126,8 +125,9 @@ exports.schema = {
 			'required': true
 		},
 		'duration': {
+			'description': 'Duration of capture process in seconds',
 			'type': 'integer',
-			'maximum': 10
+			'maximum': 60 //seconds
 		}
 	}
 };
