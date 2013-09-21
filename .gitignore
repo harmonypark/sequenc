@@ -1,5 +1,4 @@
 tmp
-store/
 node_modules
 *.sublime-project
 *.sublime-workspace
