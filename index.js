@@ -13,5 +13,5 @@ app.use(function(err, req, res, next){
 	res.send({ errors: [err] }, err.status); //TODO: implement proper error handler
 });
 
-app.listen(config.port);
+app.listen((process.env.PORT || config.port || 3000));
 console.log('App listening on port:' + config.port);
