@@ -45,14 +45,14 @@ exports.run = function(job, done){
 
 	// TODO: get rid of lame format string mapping
 
-	var data = job.data || {},
-		format = data.format,
-		duration = data.duration,
+	var input = job.input || {},
+		format = input.format,
+		duration = parseInt(input.duration),
 		inFormat = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
 		outFormat = ((!duration) ? (format || 'GIF') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
 		jobId = uuid.v1();
 
-	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, data));
+	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, input));
 
 	phantom.on('close', function( status ){
 
@@ -124,6 +124,10 @@ exports.schema = {
 			'type': 'string',
 			'minLength': 5,
 			'required': true
+		},
+		'duration': {
+			'type': 'integer',
+			'maximum': 10
 		}
 	}
 };

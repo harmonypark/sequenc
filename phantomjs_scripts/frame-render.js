@@ -21,7 +21,6 @@ page.viewportSize = { width: width, height: height};
 page.open(url, function(status) {
 
 	if(status !== 'success'){
-		system.stderr.write('Failed to open ' + url);
 		return phantom.exit(1);
 	}
 
@@ -30,9 +29,11 @@ page.open(url, function(status) {
 			if( currFrame === frames ){
 	            return phantom.exit(0);
 	        }
+	        page.scrollPosition = { top: currFrame, left: 0 }; // debug
 	        page.render('./tmp/' + dirPrefix + '/' + '_' + currFrame + '.' + outFormat);
 	        currFrame++;
 	    }, 1000/frameRate);
 
 	}, 1000);
+
 });
