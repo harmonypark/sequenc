@@ -49,7 +49,7 @@ exports.run = function(job, done){
 		format = input.format,
 		duration = parseInt(input.duration),
 		inFormat = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
-		outFormat = ((!duration) ? (format || 'GIF') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
+		outFormat = ((!duration) ? (format || 'PNG') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
 		jobId = uuid.v1();
 
 	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, input));
