@@ -7,7 +7,6 @@ var _ = require('lodash'),
 	proFiles = require('../lib/promised-files'),
 	phantom, ffmpeg;
 
-
 function runPhantom( options ){
 
 	options = options || {};
@@ -39,7 +38,6 @@ function runFfmpeg( options ){
         ['-start_number', '0', '-r', '25', '-i', './tmp/' + jobId + '/' +'_%d.' + inFormat, '-y', './tmp/' + jobId + '/' + 'out.' + outFormat]
 	);
 }
-
 
 exports.run = function(job, done){
 
@@ -92,9 +90,8 @@ exports.run = function(job, done){
 				tempLoc = './tmp/' + jobId,
 				newLoc = './store/' + jobId;
 
-			proFiles.mkdir(newLoc)
-				.then(_.partial(proFiles.copy, tempLoc.concat('/', fileName), newLoc.concat('/', fileName)))
-				.then(_.partial(onsuccess, {file: path.resolve( newLoc.concat('/', fileName) )}))
+			proFiles.s3Upload(tempLoc.concat('/', fileName))
+				.then( onsuccess )
 				.fail( onfail )
 				.done( _.partial( proFiles.rmdir, tempLoc, {recursive: true, force: true} ) );
 
@@ -105,14 +102,14 @@ exports.run = function(job, done){
 		return done(exports.type + ' process: ' + err);
 	}
 
-	function onsuccess(data){
-		return done(null, data);
+	function onsuccess( path ){
+		return done(null, { path: path });
 	}
 
 };
 
 exports.type = "capture";
-exports.concur = 10;
+exports.concur = 2;
 exports.schema = {
 	'title': 'Process',
 	'description': 'URL to Media conversion',

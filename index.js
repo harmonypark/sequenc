@@ -3,7 +3,8 @@
 var express = require('express'),
 	url = require('url'),
 	config = require('config'),
-	queueServer = require('./server/queue'),
+	queueServer = require('./lib/queue'),
+	fileStore = require('./lib/store'),
 	app = express();
 
 queueServer.loadProcs('./procs');
