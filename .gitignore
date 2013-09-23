@@ -4,3 +4,4 @@ node_modules
 .nodemonignore
 dump.rdb
 .env
+newrelic_agent.log

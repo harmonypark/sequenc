@@ -4,7 +4,7 @@ var express = require('express'),
 	url = require('url'),
 	config = require('config'),
 	queueServer = require('./lib/queue'),
-	fileStore = require('./lib/store'),
+	monitor = require('./lib/monitor'),
 	app = express();
 
 queueServer.loadProcs('./procs');
