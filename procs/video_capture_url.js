@@ -21,7 +21,8 @@ function runPhantom( options ){
 
 	return spawn(
 	    'phantomjs',
-	    ['./phantomjs_scripts/frame-render.js', uri, duration, jobId, width, height, outFormat, frameRate]
+	    ['./phantomjs_scripts/frame-render.js', uri, duration, jobId, width, height, outFormat, frameRate],
+	    {stdio: ['pipe', 'pipe', 'pipe']}
 	);
 }
 
@@ -48,13 +49,15 @@ exports.run = function(job, done){
 		duration = parseInt(input.duration),
 		inFormat = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
 		outFormat = ((!duration) ? (format || 'PNG') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
-		jobId = uuid.v1();
+		jobId = uuid.v1(),
+		jobTotal = 1;
 
 	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, input));
 
 	phantom.on('close', function( status ){
 
 		if(status !== 0){
+
 			return done(exports.type + ' process: ' + status);
 
 		} else {
@@ -79,16 +82,29 @@ exports.run = function(job, done){
 
 	});
 
+	phantom.stdout.on('data', function(data){
+		data = JSON.parse(data.toString());
+		var complete = data.complete || 0,
+			total = jobTotal = data.total + 2; // extra steps for ffmpeg conversion and file upload
+
+		return job.progress(complete, total);
+	});
+
+	// phantom.stderr.on('data', function(data){
+
+	// });
+
 	function onprocend( status ){
+
 		if(status !== 0){
-
 			return onfail(data);
-
 		} else {
 
 			var fileName = (duration) ? 'out.' + outFormat : '_0.' + outFormat,
 				tempLoc = './tmp/' + jobId,
 				newLoc = './store/' + jobId;
+
+			job.progress(jobTotal - 1, jobTotal);
 
 			proFiles.s3Upload(tempLoc.concat('/', fileName))
 				.then( onsuccess )
@@ -103,6 +119,7 @@ exports.run = function(job, done){
 	}
 
 	function onsuccess( path ){
+		job.progress(jobTotal, jobTotal);
 		return done(null, { path: path });
 	}
 
@@ -124,7 +141,7 @@ exports.schema = {
 		'duration': {
 			'description': 'Duration of capture process in seconds',
 			'type': 'integer',
-			'maximum': 60 //seconds
+			'maximum': 10 //seconds
 		}
 	}
 };

@@ -5,6 +5,7 @@
 
 var page = require('webpage').create(),
 	system = require('system'),
+	fs = require('fs'),
 	url = system.args[1],
 	duration = parseInt(system.args[2]) || 0,
 	dirPrefix = system.args[3],
@@ -35,6 +36,9 @@ page.open(url, function(status) {
 	        page.scrollPosition = { top: currFrame, left: 0 }; // debug
 	        page.render('./tmp/' + dirPrefix + '/' + '_' + currFrame + '.' + outFormat);
 	        currFrame++;
+
+	       	system.stdout.write(JSON.stringify({complete: currFrame, total: frames}));
+
 	    }, 1000/frameRate);
 
 	}, 1000);
