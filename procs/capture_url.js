@@ -43,7 +43,7 @@ exports.run = function(job, done){
 		} else if( files ){
 			return onprocend( data );
 		} else {
-			return onfail('files wen\'t missing...')
+			return onfail('files went missing...')
 		}
 	}
 
