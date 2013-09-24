@@ -1,8 +1,6 @@
 'use strict';
 
 var _ = require('lodash'),
-	path = require('path'),
-	spawn = require('child_process').spawn,
 	uuid = require('node-uuid'),
 	phRunner = require('../lib/phantomjs-runner'),
 	ffmpegSeq = require('../lib/ffmpeg-seq'),
