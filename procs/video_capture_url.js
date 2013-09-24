@@ -4,41 +4,10 @@ var _ = require('lodash'),
 	path = require('path'),
 	spawn = require('child_process').spawn,
 	uuid = require('node-uuid'),
+	phRunner = require('../lib/phantomjs-runner'),
+	ffmpegSeq = require('../lib/ffmpeg-seq'),
 	proFiles = require('../lib/promised-files'),
 	phantom, ffmpeg;
-
-function runPhantom( options ){
-
-	options = options || {};
-
-	var uri = options.uri,
-		duration = options.duration,
-		jobId = options.jobId,
-		width = options.width,
-		height = options.height,
-		outFormat = options.outFormat,
-		frameRate = options.frameRate;
-
-	return spawn(
-	    'phantomjs',
-	    ['./phantomjs_scripts/frame-render.js', uri, duration, jobId, width, height, outFormat, frameRate],
-	    {stdio: ['pipe', 'pipe', 'pipe']}
-	);
-}
-
-function runFfmpeg( options ){
-
-	options = options || {};
-
-	var inFormat = options.inFormat || 'PNG',
-		outFormat = options.outFormat || 'MP4',
-		jobId = options.jobId;
-
-	return spawn(
-        'ffmpeg',
-        ['-start_number', '0', '-r', '25', '-i', './tmp/' + jobId + '/' +'_%d.' + inFormat, '-y', './tmp/' + jobId + '/' + 'out.' + outFormat]
-	);
-}
 
 exports.run = function(job, done){
 
@@ -47,80 +16,75 @@ exports.run = function(job, done){
 	var input = job.input || {},
 		format = input.format,
 		duration = parseInt(input.duration),
-		inFormat = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
+		phOutput = ((!duration) ? (format || 'PNG') : 'PNG').toUpperCase(),
 		outFormat = ((!duration) ? (format || 'PNG') : ((format === 'GIF' || format === 'gif') ? format : 'MP4')).toUpperCase(),
-		jobId = uuid.v1(),
-		jobTotal = 1;
+		id = uuid.v1();
 
-	phantom = runPhantom(_.extend({jobId: jobId, outFormat: inFormat}, input));
+	phantom = phRunner(_.extend({
+		script: './phantomjs_scripts/frame-render.js',
+		output: phOutput,
+		id: id
+	}, input))
+		.then( onphcomplete )
+		.fail( onfail )
+		.progress( onprogress );
 
-	phantom.on('close', function( status ){
+	function onphcomplete( data ){
+		data = data || {};
+		var files = data.files;
 
-		if(status !== 0){
+		if(data && files.length > 1){
+			return ffmpeg = ffmpegSeq({
+					input: files[0].dir + '/_%d.' + phOutput,
+					output: 'out.' + outFormat,
+					id: data.id
+				})
+				.then( onprocend )
+				.fail( onfail );
 
-			return done(exports.type + ' process: ' + status);
-
+		} else if( files ){
+			return onprocend( data );
 		} else {
-
-			if(!duration) {
-
-				onprocend( status );
-
-			} else {
-
-				ffmpeg = runFfmpeg({
-					jobId: jobId,
-					inFormat: inFormat,
-					outFormat: outFormat
-				});
-
-				ffmpeg.on('close', onprocend);
-			}
-
-
-		}
-
-	});
-
-	phantom.stdout.on('data', function(data){
-		data = JSON.parse(data.toString());
-		var complete = data.complete || 0,
-			total = jobTotal = data.total + 2; // extra steps for ffmpeg conversion and file upload
-
-		return job.progress(complete, total);
-	});
-
-	// phantom.stderr.on('data', function(data){
-
-	// });
-
-	function onprocend( status ){
-
-		if(status !== 0){
-			return onfail(data);
-		} else {
-
-			var fileName = (duration) ? 'out.' + outFormat : '_0.' + outFormat,
-				tempLoc = './tmp/' + jobId,
-				newLoc = './store/' + jobId;
-
-			job.progress(jobTotal - 1, jobTotal);
-
-			proFiles.s3Upload(tempLoc.concat('/', fileName))
-				.then( onsuccess )
-				.fail( onfail )
-				.done( _.partial( proFiles.rmdir, tempLoc, {recursive: true, force: true} ) );
-
+			return onfail('files wen\'t missing...')
 		}
 	}
 
-	function onfail(err){
-		return done(exports.type + ' process: ' + err);
+	function onprocend( data ){
+
+		var fileName = data.files[0].name,
+			tempLoc = './tmp/' + data.id;
+
+		return proFiles.s3Upload(tempLoc.concat('/', fileName))
+			.then( onsuccess )
+			.fail( onfail )
+			.done( cleanup );
+	}
+
+	function onprogress( data ){
+		data = data || {};
+
+		var complete = data.complete,
+			total = (data.total || 1) + 2; // extra steps for ffmpeg conversion and file upload
+
+		if(complete){
+			return job.progress(complete, total);
+		} else {
+			return;
+		}
 	}
 
 	function onsuccess( path ){
-		job.progress(jobTotal, jobTotal);
 		return done(null, { path: path });
+	}
+
+	function onfail( err ){
+		cleanup();
+		return done(exports.type + ' process: ' + err);
+	}
+
+	function cleanup(){
+		var tempLoc = './tmp/' + id;
+		return proFiles.rmdir(tempLoc, {recursive: true, force: true});
 	}
 
 };

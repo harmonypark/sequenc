@@ -5,41 +5,69 @@
 
 var page = require('webpage').create(),
 	system = require('system'),
-	fs = require('fs'),
 	url = system.args[1],
-	duration = parseInt(system.args[2]) || 0,
-	dirPrefix = system.args[3],
-	width = parseInt(system.args[4]) || 800,
-	height = parseInt(system.args[5]) || 600,
-	outFormat = system.args[6] || 'PNG',
-	frameRate = parseInt(system.args[7]) || 25,
-	frames = (duration) ? duration * frameRate : 1,
-	currFrame = 0;
+	id = system.args[2],
+	out = system.args[3] || 'PNG',
+	duration = parseInt(system.args[4]) || 0,
+	width = parseInt(system.args[5]) || 800,
+	height = parseInt(system.args[6]) || 600,
+	rate = parseInt(system.args[7]) || 25,
+	frames = (duration) ? duration * rate : 1,
+	currFrame = 0, files = [];
 
-if(!url || !dirPrefix){
+if(!url || !id){
 	phantom.exit(1);
 }
 
 page.clipRect = { top: 0, left: 0, width: width, height: height};
 page.viewportSize = { width: width, height: height};
+
+page.onError = function(msg, trace) {
+    var msgStack = ['ERROR: ' + msg];
+    if (trace && trace.length) {
+        msgStack.push('TRACE:');
+        trace.forEach(function(t) {
+            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
+        });
+    }
+    system.stderr.write(JSON.stringify({errors: trace}));
+};
+
 page.open(url, function(status) {
+
+	var dirPath = './tmp/' + id, fileName;
 
 	if(status !== 'success'){
 		return phantom.exit(1);
 	}
 
 	setTimeout(function(){
+
 		setInterval(function(){
+
 			if( currFrame === frames ){
-	            return phantom.exit(0);
+	            phantom.exit(0);
 	        }
-	        page.scrollPosition = { top: currFrame, left: 0 }; // debug
-	        page.render('./tmp/' + dirPrefix + '/' + '_' + currFrame + '.' + outFormat);
+
+	        fileName = '_' + currFrame + '.' + out;
+	        path = dirPath + '/' + fileName;
+	        page.render(path);
+	        files.push({
+       			name: fileName,
+       			path: path,
+       			dir: dirPath
+	       	});
+
 	        currFrame++;
 
-	       	system.stdout.write(JSON.stringify({complete: currFrame, total: frames}));
+	       	system.stdout.write(JSON.stringify({
+	       		complete: currFrame,
+	       		total: frames,
+	       		files: files,
+	       		id: id
+	       	}));
 
-	    }, 1000/frameRate);
+	    }, 1000/rate);
 
 	}, 1000);
 
